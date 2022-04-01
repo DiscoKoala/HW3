@@ -19,18 +19,18 @@
 using namespace std;
 
 // 
-bool operatorCheck(char token){
-    if(token == '+' || token == '-' || token == '*' || token == '/'){
+bool operatorCheck(string token){
+    if(token == "+" || token == "-" || token == "*" || token == "/" || token == "%" || token == "^"){
         return true;
     }
     return false;
 };
 
-bool operandCheck(char token){
+bool operandCheck(string token){
     // Checks if element is an operand. isalnum incompatible with string.
-    if(isalnum(token) != false){
+    if(isalnum(token[0]) != false){
         return true;
-    }
+    };
     return false;
 };
 
@@ -58,56 +58,35 @@ bool balanceCheck(string postFix){
 };
 
 // Performs arithmetic when operator detected.
-int operation(char a, char b, char op){
+int operation(string a, string b, char op){
 
     // Convert string tokens to integers.
-    int opA = a - '0';
-    int opB = b - '0';
+    int opA = stoi(a);
+    int opB = stoi(b);
 
     switch(op){
         case '+': 
-            return opA + opB;
-            break;
+            return (opA + opB);
         case '-':
-            return opA - opB;
-            break;
+            return (opB - opA);
         case '*':
-            return opA * opB;
-            break;
+            return (opA * opB);
         case '/':
             return round(opA / opB);
-            break;
         case '%':
-            return opA % opB;
-            break;
+            return (opA % opB);
         case '^':
             return pow(opA, opB);
-            break;
         default:
             std::cout << "Unknown Operator. " << endl;
             return -1;
-            break;
     };
-};
-
-// Removes all unused characters.
-vector<char> remove(vector<char> tokens){
-
-    tokens.erase(std::remove(tokens.begin(), tokens.end(),' '), tokens.end());
-    tokens.erase(std::remove(tokens.begin(), tokens.end(),'('), tokens.end());
-    tokens.erase(std::remove(tokens.begin(), tokens.end(),')'), tokens.end());
-    tokens.erase(std::remove(tokens.begin(), tokens.end(),'['), tokens.end());
-    tokens.erase(std::remove(tokens.begin(), tokens.end(),']'), tokens.end());
-    tokens.erase(std::remove(tokens.begin(), tokens.end(),'{'), tokens.end());
-    tokens.erase(std::remove(tokens.begin(), tokens.end(),'}'), tokens.end());
-
-    return tokens;
 };
 
 int main(){
 
     string postFix;
-    vector<char> stack;
+    vector<string> stack, tokens;
     int result = 0;
     int operators = 0;
     int operands = 0;
@@ -117,67 +96,54 @@ int main(){
         std::cout << "Enter postfix expression: " << endl;
         std::getline(cin, postFix);
     }while(!balanceCheck(postFix));
-    
-    vector<char> tokens(postFix.begin(), postFix.end());
 
-    tokens = remove(tokens);
+    stringstream expHolder(postFix);
+
+    string temp;
+
+    while(getline(expHolder, temp, ' ')){
+        tokens.push_back(temp);
+    };
 
     while(!tokens.empty()){
         
         // Iterate through tokens vector.
-        for(auto const &charHolder: tokens){
+        for(string &charHolder: tokens){
             // If operand, add to stack.
-
             if(operandCheck(charHolder)){
                 stack.push_back(charHolder);
                 tokens.pop_back();
                 operands++;
-
-                // Returns error message if operator missing.
-                // if(stack.size() != 1 && tokens.empty()){
-                //     std::cout << "Expression with an error - missing operator(s)." << endl;
-                //     break;
-                // };
             };
             
             // If operator, pop top two elements from stack and perform operation.
+            // Delete operator from token vector.
             if(operatorCheck(charHolder)){
-
+                
                 tokens.pop_back();
 
-                char a = stack.back();
+                string a = stack.back();
                 stack.pop_back();
 
-                // if(stack.size() != 1 && tokens.empty()){
-                //     std::cout << "Expression with an error - missing operand."<< endl;
-                //     break;
-                // };
-
-                char b = stack.back();
+                string b = stack.back();
                 stack.pop_back();
                 operators++;
 
-                result += operation(a, b, charHolder);
-                stack.push_back(static_cast<char>(result));
-            };
+                const char * op = charHolder.c_str();
+                char charHolder = *op;
 
-            // If expression is valid, output result
-            // if(stack.size() == 1 && tokens.empty()){
-            //     std::cout << "Valid expression. Result: " << result << endl;
-            // };
-            
+                result = operation(a, b, charHolder);
+                stack.push_back(to_string(result));
+            };  
         };
-
+    };
         if(operators == operands){
             cout << "Expression with an error - missing operand(s)." << endl;
         }else if(operators < operands - 1){
-            cout << operands << " " << operators << endl;
             cout << "Expression with an error - missing operator(s)." << endl;
         }else{
             cout << "Valid expression\n";
             cout << "Result = " << result << endl;
         };
-
-    };
 
 };
